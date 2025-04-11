@@ -1,0 +1,43 @@
+# Python Virtual Environment
+venv/
+.venv/
+
+# Python Compiled Files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment Variables & Secrets
+.env
+.env.local
+*.pem  # Private keys (if any)
+
+# PyCharm Specific Files
+.idea/
+*.iml
+
+# Logs & Caches
+logs/
+*.log
+*.sqlite3  # SQLite database (if using)
+
+# Docker Ignore
+docker-compose.override.yml
+*.dockerfile
+*.db
+
+# Node Modules (if full-stack with React)
+node_modules/
+dist/
+build/
+
+# VS Code Files (Optional)
+.vscode/
+
+# Jupyter Notebook Checkpoints (if using Jupyter)
+.ipynb_checkpoints/
+
+#Coverage Reports (if running tests)
+htmlcov/
+.coverage
