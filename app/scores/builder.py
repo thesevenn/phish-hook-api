@@ -8,6 +8,10 @@ from app.scores.threat import ThreatScore
 class ThreatScoreBuilder:
     def __init__(self):
         self.__threat_sheet:List[ThreatScore] = []
+        self.__score = 0
+
+    def score(self):
+        return self.__score
 
     def add_threat_score(self, threat_score: ThreatScore):
         if not isinstance(threat_score,ThreatScore):
@@ -15,6 +19,18 @@ class ThreatScoreBuilder:
         if threat_score.threat_score > 0:
             self.__threat_sheet.append(threat_score)
 
+    def calculate_score(self):
+        score = 0
+        for threat_score in self.__threat_sheet:
+            score += threat_score.to_dict()["score"]
+        self.__score = score
+
+    def remove_risk_scores(self):
+        """
+        Removes score from all risk score entries in threat_sheet
+        Returns: Analysis ready to be sent
+
+        """
     @staticmethod
     def calculate_score_verdict(score):
         score = min(score,Consts.SCORE_CAP)
@@ -57,17 +73,41 @@ class ThreatScoreBuilder:
             # Critical phishing: confidence shoots up
             return round(0.78 + 0.2 * ((score - 17) / (60 - 17)), 2)  # up to 0.98
 
+    @staticmethod
+    def calculate_nudge_score(proba: float) -> int:
+        if proba >= 0.9:
+            return 10 # confident phishing
+        elif proba >= 0.75:
+            return 7  # strong phishing
+        elif proba >= 0.6:
+            return 3  # likely phishing
+        elif proba >= 0.4:
+            return 0  # uncertain - no nudge
+        elif proba >= 0.25:
+            return -5  # Likely clean
+        else:
+            return -7 # clean
+
+    def add_classifier_score(self,entries:List):
+        for entry in entries:
+            nudge =  self.calculate_nudge_score(entry["proba"][0][1])
+            self.__score += nudge
+            self.__threat_sheet.append(
+                ThreatScore(entry["type"],
+                            nudge,
+                            "",
+                            "classifier",
+                            [],
+                            [entry["remarks"]]))
+
+
+
     def build(self):
-        score = 0
-        for threat_score in self.__threat_sheet:
-            score += threat_score.to_dict()["score"]
-
-        normalized_score, verdict = ThreatScoreBuilder.calculate_score_verdict(score)
-
+        normalized_score, verdict = ThreatScoreBuilder.calculate_score_verdict(self.__score)
         return {
             "verdict":verdict,
             "score":normalized_score,
-            "analysis":[threat.to_dict() for threat in self.__threat_sheet],
-            "confidence":ThreatScoreBuilder.calculate_confidence(score),
+            "filters":[threat.to_dict() for threat in self.__threat_sheet],
+            "confidence":ThreatScoreBuilder.calculate_confidence(self.__score),
             "critical":[]
         }

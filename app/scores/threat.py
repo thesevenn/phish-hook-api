@@ -22,7 +22,7 @@ class ThreatScore:
     def to_dict(self):
         return {
             "name": self.threat_name,
-            "value": self.original_value,
+            "preview": self.original_value[:150],
             "score": self.threat_score,
             "factors": self.threat_factors,
             "clues":self.threat_clues,
