@@ -25,9 +25,9 @@ class RuleFilters:
         _,_, reply_to_domain = self.__features["reply_to"]
         scores = [Ruleset.check_domain_spoofing(sender_domain=sender_domain),
                   Ruleset.check_reply_to(reply_to_domain=reply_to_domain, sender_domain=sender_domain),
-                  Ruleset.check_domain_age(domain=sender_domain)]
-        if sender_domain != reply_to_domain:
-            scores.append(Ruleset.check_domain_age(domain=reply_to_domain))
+                  ]
+        # if sender_domain != reply_to_domain:
+        #     scores.append(Ruleset.check_domain_age(domain=reply_to_domain))
         for score in scores:
             if score:
                 threat_score += RiskScore.extract_score(score_as_dict=score,
@@ -98,15 +98,15 @@ class RuleFilters:
         body_html = self.__features["body_html"]
         body_text = self.__features["body_text"]
         _,_, sender_domain = self.__features["sender"]
-        urls = Ruleset.extract_urls(content_html=body_html, content_text=body_text)
+        urls = self.__features["urls"]
         scores = [Ruleset.check_url_redirects(urls)]
         domains = set(Ruleset.url_domain(url) for url in urls)
 
         for domain in domains:
             scores.append(Ruleset.check_domain_spoofing(domain))
             scores.append(Ruleset.check_brand_impersonation(domain, body_text))
-            if domain != sender_domain:
-                scores.append(Ruleset.check_domain_age(domain))
+            # if domain != sender_domain:
+            #     scores.append(Ruleset.check_domain_age(domain))
 
         for url in urls:
             scores.append(Ruleset.check_ip_as_url(url))
