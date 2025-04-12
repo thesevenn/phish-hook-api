@@ -1,4 +1,5 @@
 import re
+from bs4 import BeautifulSoup
 
 class Utils:
 
@@ -36,6 +37,14 @@ class Utils:
         sender_domain = Utils.extract_sender_domain(row['sender'])
         combined = f"{sender_domain} {row.get('subject', '')} {row.get('body', '')}"
         return Utils.clean_text(combined)
+
+    @staticmethod
+    def extract_urls(content_html="", content_text=""):
+        parser = BeautifulSoup(content_html, 'html.parser')
+        urls_from_html = [a['href'] for a in parser.find_all('a', href=True)]
+        url_re = r'https?://(?:[-\w.]|(?:%[\da-fA-F]{2}))+'
+        urls_from_text = re.findall(url_re, content_text)
+        return set(urls_from_text + urls_from_html)
 
 
 if __name__ == "__main__":
