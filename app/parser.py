@@ -3,6 +3,7 @@ from email.utils import parseaddr
 from email.policy import default
 
 from app.filters.ruleset import Ruleset
+from app.config.utils import Utils
 
 class EmailParser:
     def __init__( self, raw_data:bytes ):
@@ -46,6 +47,7 @@ class EmailParser:
 
         features = {
             "message_id":message_id,
+            "sender_string":sender,
             "sender":self.format_sender(sender),
             "recipient":recipient,
             "reply_to":self.format_sender(reply_to),
@@ -53,6 +55,7 @@ class EmailParser:
             "subject":subject,
             "body_text":content_text.replace("\n"," "),
             "body_html":content_html if content_html else "",
+            "urls": list(Utils.extract_urls(content_html,content_text)),
             "raw_email":email,
         }
         return features
