@@ -2,6 +2,7 @@ from typing import Literal
 
 from app.parser import EmailParser
 from app.filters import filters
+from app.classifier import classifier
 from app.scores.builder import ThreatScoreBuilder
 
 class Orchestrator:
@@ -10,11 +11,14 @@ class Orchestrator:
         self.__builder = ThreatScoreBuilder()
 
     def orchestrate(self, mode:Literal["f","c","fc"] = "fc"):
-        if "f" in mode:
-            runner = filters.RuleFilters(self.__features, self.__builder)
-            runner.runner()
-        if "c" in mode:
-            pass
-        if mode not in "fc":
-            raise ValueError("Valid mode value only in - ['f','c','fc']")
+        runner = filters.RuleFilters(self.__features, self.__builder)
+        runner.runner()
+        self.__builder.calculate_score()
+        score = self.__builder.score()
+        if score and 5 < score < 20:
+            run = classifier.Classifier(self.__features)
+            result = run.classify()
+            self.__builder.add_classifier_score(result)
         return self.__builder.build()
+
+
