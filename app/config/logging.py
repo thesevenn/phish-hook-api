@@ -1,6 +1,4 @@
 import os
-import logging
-from logging.config import dictConfig
 
 LOG_DIR = "logs"
 os.makedirs(LOG_DIR, exist_ok=True)
@@ -46,6 +44,7 @@ LOGGING_CONFIG = {
         "uvicorn": {
             "handlers": ["console"],
             "level": "INFO",
+            "propagate": False,
         },
         "uvicorn.error": {
             "level": "ERROR",
@@ -62,6 +61,10 @@ LOGGING_CONFIG = {
             "handlers": ["console", "file_detections"],
             "propagate": False,
         },
-    }
-
+        "requests": {
+            "level": "INFO",
+            "handlers": ["console", "file_requests"],
+            "propagate": False,
+        },
+    },
 }
