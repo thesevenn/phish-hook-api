@@ -1,51 +1,28 @@
-from typing import Optional
 import logging
-from fastapi import FastAPI, File, UploadFile, HTTPException, Form
+from logging.config import dictConfig
+from fastapi import FastAPI, responses
 
 from routes.router import router
-from app.orchestrator import Orchestrator
+from app.config.logging import LOGGING_CONFIG
+from middlewares.logger import log_request
 
-logging.basicConfig(level=logging.DEBUG)
-log = logging.getLogger(__name__)
+dictConfig(LOGGING_CONFIG)
 
 app = FastAPI(debug=True)
 app.include_router(router,prefix="/api")
 
+#middlewares
+app.middleware("http")(log_request)
+
 @app.get("/")
-def read_root():
-    return {"Hello": "World"}
-
-@app.post("/upload/")
-async def uploader(as_file: Optional[UploadFile] = File(None), as_str:Optional[str] = Form(None)):
-    if not as_file and not as_str:
-        raise HTTPException(status_code=400, detail="Either .eml file or raw email string is required")
-    if as_file and not as_file.filename.endswith(".eml"):
-        raise HTTPException(status_code=400, detail="Only .eml files are allowed")
-    try:
-        if as_file:
-            print(f"✅ File received: {as_file.filename}")
-            raw_data = await as_file.read() # read file in memory
-        else:
-            raw_data = as_str.encode()
-
-        result = Orchestrator(raw_data).orchestrate()
-
-        return {
-            "filename": as_file.filename if as_file else "",
-            "filesize": f"{round(len(raw_data) / 1000, 1)} KB",
-            "result": result
-        }
-
-    except Exception as e:
-        print(f"Error occurred: {e}\n")  # Detailed error logging
-        raise HTTPException(status_code=500, detail="Internal Server Error")
+def root():
+    return responses.JSONResponse({"status":"active", "api_path":"/api[/path]"})
 
 
-@app.post("/rules")
-def read_item(item_id: int, q: str| None = None):
-    return {"item_id": item_id, "q": q}
-
-
-@app.post("/analysis")
-def analysis():
-    pass
+@app.exception_handler(Exception)
+async def global_exception_handler(request, exc: Exception):
+    logging.getLogger("uvicorn.error").exception("Unhandled server error")
+    return responses.JSONResponse(
+        status_code=500,
+        content={"error": True, "message": "Something went wrong. Please try again."},
+    )
