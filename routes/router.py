@@ -1,12 +1,14 @@
 from typing import Optional
-from fastapi import routing, File, UploadFile, HTTPException, Form, responses
+from fastapi import routing, File, UploadFile, HTTPException, Form, responses,Request
 
 from app.orchestrator import Orchestrator
+from app.config.limiter import limiter
 
 router = routing.APIRouter()
 
 @router.post("/analyze")
-async def uploader(as_file: Optional[UploadFile] = File(None), as_str:Optional[str] = Form(None)):
+@limiter.limit("5/minute")
+async def uploader(request:Request,as_file: Optional[UploadFile] = File(None), as_str:Optional[str] = Form(None)):
     if not as_file and not as_str:
         raise HTTPException(status_code=400, detail="Either .eml file or raw email string is required")
     if as_file and not as_file.filename.endswith(".eml"):
@@ -32,7 +34,8 @@ async def uploader(as_file: Optional[UploadFile] = File(None), as_str:Optional[s
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 @router.get("/status")
-def status():
+@limiter.limit("10/minute")
+def status(request:Request):
     try:
         return responses.JSONResponse({"status":"active", "health":"ok"})
     except Exception as e:
