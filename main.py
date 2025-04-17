@@ -2,12 +2,12 @@ import logging
 from logging.config import dictConfig
 from fastapi import FastAPI, responses, Request
 from slowapi.errors import RateLimitExceeded
-from slowapi import _rate_limit_exceeded_handler
 
 from routes.router import router
 from app.config.limiter import limiter
 from middlewares.logger import log_request
 from app.config.logging import LOGGING_CONFIG
+from handlers.rate_limit_handler import rate_limit_handler
 
 dictConfig(LOGGING_CONFIG)
 
@@ -25,7 +25,7 @@ def root(request:Request):
     return responses.JSONResponse({"status":"active", "api_path":"/api[/path]"})
 
 
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_exception_handler(RateLimitExceeded, rate_limit_handler)
 
 
 @app.exception_handler(Exception)
