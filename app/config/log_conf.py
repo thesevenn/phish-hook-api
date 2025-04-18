@@ -49,7 +49,7 @@ LOGGING_CONFIG = {
         "uvicorn.error": {
             "level": "ERROR",
             "handlers": ["console", "file_errors"],
-            "propagate": True,
+            "propagate": False,
         },
         "uvicorn.access": {
             "level": "INFO",
