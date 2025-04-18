@@ -6,26 +6,27 @@ from slowapi.errors import RateLimitExceeded
 from routes.router import router
 from app.config.limiter import limiter
 from middlewares.logger import log_request
-from app.config.logging import LOGGING_CONFIG
+from app.config.log_conf import LOGGING_CONFIG
 from handlers.rate_limit_handler import rate_limit_handler
+from app.config.store import Store
 
 dictConfig(LOGGING_CONFIG)
 
+Store.load()
 app = FastAPI(debug=True)
-app.include_router(router,prefix="/api")
 app.state.limiter = limiter
+app.include_router(router,prefix="/api")
 
 #middlewares
 app.middleware("http")(log_request)
 
+# exception handler
+app.add_exception_handler(RateLimitExceeded, rate_limit_handler)
 
 @app.get("/")
 @limiter.limit("10/minute")
 def root(request:Request):
-    return responses.JSONResponse({"status":"active", "api_path":"/api[/path]"})
-
-
-app.add_exception_handler(RateLimitExceeded, rate_limit_handler)
+    return responses.JSONResponse({"status":"active", "api_root":"/api/*"})
 
 
 @app.exception_handler(Exception)
