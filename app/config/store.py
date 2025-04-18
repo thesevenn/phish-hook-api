@@ -1,5 +1,6 @@
+import logging
 class Store:
-
+    logger = logging.getLogger("uvicorn.error")
     phishing_phrases = [
     # Account security
     "verify your account",
@@ -104,3 +105,31 @@ class Store:
     targeted_brands = ["amazon", "bing", "google", "facebook", "paypal", "amex", "twitter", "microsoft"]
     url_black_list = []
     trusted_domains = ["amazon.com", "bing.com", "google.com", "facebook.com", "paypal.com", "amex.com", "twitter.com", "microsoft.com"]
+
+    @staticmethod
+    def load_and_cache_data(filename:str, column:str):
+        import pandas as pd
+        if not filename.lower().endswith(".csv"):
+            raise ValueError("Invalid file type, csv expected")
+        if not column:
+            raise ValueError("Column is required to build a cache")
+        try:
+            df = pd.read_csv(filename)
+            if column not in df.columns:
+                raise ValueError(f"Column '{column}' not found in csv")
+            cache = set(df[column])
+            return cache
+        except ValueError as ve:
+            Store.logger.error(f"Value Error: {ve}",exc_info=True)
+            raise
+        except FileNotFoundError:
+            Store.logger.error(f"File not found: '{filename}'")
+            raise
+        except Exception as e:
+            Store.logger.error(f"Unknown error while processing file: {filename}: {e}",exc_info=True)
+            raise
+
+    @staticmethod
+    def load():
+        Store.trusted_domains = Store.load_and_cache_data("./data/trusted_domains.csv","Domain")
+        Store.url_black_list = Store.load_and_cache_data("./data/black_list.csv","url")
