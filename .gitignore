@@ -42,4 +42,3 @@ build/
 htmlcov/
 .coverage
 
-*.pkl
