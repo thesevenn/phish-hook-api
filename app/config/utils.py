@@ -1,12 +1,13 @@
 import re
 from bs4 import BeautifulSoup
+import tldextract
 
 class Utils:
 
     @staticmethod
     def lerp(x: int, x0: int, x1: int, y0: int, y1: int):
         """
-        Linear Interpolation - Maps value from range [from_start, from_end] to [to_start, to_end]
+        Linear Interpolation - Maps value in range [x0, x1] to [y0, y1]
         Args:
             x: Value to be mapped
             x0: Starting value of original range
@@ -45,6 +46,20 @@ class Utils:
         url_re = r'https?://(?:[-\w.]|(?:%[\da-fA-F]{2}))+'
         urls_from_text = re.findall(url_re, content_text)
         return set(urls_from_text + urls_from_html)
+
+    @staticmethod
+    def extract_brand(domain:str)->str:
+        """
+        Extracts brand name from the domain removing any subdomains, tld or paths etc
+        Args:
+            domain: Domain in the form subdomain.domain.tld or domain.tld
+
+        Returns:
+            Domain name as string in form - brand_name, when domain was - domain.tld
+        """
+        extracted = tldextract.extract(domain)
+        return extracted.domain.lower()
+
 
 
 if __name__ == "__main__":
