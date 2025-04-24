@@ -3,11 +3,12 @@ import whois
 import tldextract
 import urllib.parse
 from typing import List
-from rapidfuzz import fuzz
 from datetime import datetime
 from bs4 import BeautifulSoup
+from rapidfuzz import fuzz, process
 
 from app.config.store import Store
+from app.config.utils import Utils
 from app.config.consts import Consts
 from app.scores.risk import RiskScore
 
@@ -17,22 +18,60 @@ class Ruleset:
     Rulesets define the rules used to flag email features( subject, sender, body, urls )
     as phishing or legitimate. Rulesets provide rules to the Filters to build threat score for a feature
     """
-    #TODO - Improve the overall scoring with partial-ratio and tld shredding
+
     @staticmethod
     def check_domain_spoofing(sender_domain: str):
-        trusted_domains: List[str] = Store.trusted_domains
+        domain = sender_domain.strip().lower()
+
+        brands = Store.trusted_brands # list of known brands
+        sender_brand:str = Utils.extract_brand(domain) # extract brand name
+        tld:str = Utils.extract_tld(domain)
+        tokens:List[str] = Utils.extract_tokens(domain)
+
+        # reduce the search area by pre-filtering
+        search_space: List[str] = [
+            str(brand) for brand in brands
+            if len(brand) > 2 and (abs(len(brand) - len(sender_brand)) <= 2 or abs(len(tokens[0]) - len(brand)) <= 2)
+               and brand[0] == sender_brand[0]
+        ]
+
+        if sender_brand in search_space:
+            return RiskScore.empty()
+
+        primary_token = tokens[0] if tokens else sender_brand # likely brand name
+        combined_token = ''.join(tokens) if len(tokens) >=2 else primary_token
+
+        match, score, pos = process.extractOne(primary_token, search_space, scorer=fuzz.token_sort_ratio,
+                                               score_cutoff=75)
+
+        risk_factors = ""
         risk_score = 0
-        risk_factors = []
-        for trusted_domain in trusted_domains:
-            similarity = round(fuzz.ratio(trusted_domain, sender_domain), 1)
-            if 70 <= similarity < 100 and trusted_domain != sender_domain:
-                risk_score += Consts.CRITICAL
-                risk_factors.append(
-                    f"{sender_domain} is similar to {trusted_domain} ({similarity}%)")
+
+        if score == 100 and match == primary_token:
+            if tld != Store.brand_tld[pos]:
+                risk_score = Consts.SEVERE
+                risk_factors = f"{sender_domain} might be spoofing {match}"
+
+        if score >= 85:
+            risk_score = Consts.HIGH
+            risk_factors= f"{sender_domain} might be spoofing {match}"
+
+            # if not enough score look for combination
+        if not match or score < 80:
+            # fallback to combined token
+            match, score, _ = process.extractOne(combined_token, search_space, scorer=fuzz.token_sort_ratio)
+            if score > 82:
+                risk_score = Consts.HIGH
+                risk_factors= f"{sender_domain} might be spoofing {match}"
+
+        # checks again with lowered threshold - scores nominally
+        if score > 82:
+            risk_score = Consts.MODERATE
+            risk_factors= f"{sender_domain} might be spoofing {match}"
 
         return RiskScore("domain_spoofing",
                          risk_score,
-                         risk_factors,
+                         [risk_factors],
                          "Possible domain spoofing: {}").to_dict() if risk_score > 0 else RiskScore.empty()
 
     @staticmethod
@@ -125,15 +164,23 @@ class Ruleset:
 
     @staticmethod
     def check_brand_impersonation(domain: str, target_text: str):
-        targeted_brands = Store.targeted_brands
+        brand = Utils.extract_brand(domain).lower()
+        primary_token = Utils.extract_tokens(brand)[0]
+        targeted_brands = Store.trusted_brands
         risk_score = 0
         risk_factors = []
-        for brand in targeted_brands:
-            if brand.lower() in target_text.lower() and brand.lower() not in domain:
-                risk_score += Consts.CRITICAL
-                risk_factors.append(brand)
+        highest_match = 0
+        search_space = [ target.lower() for target in targeted_brands if len(target) > 2 and target[0] == brand[0]]
+        target_text = target_text.lower()
+        for target in search_space:
+            if target in target_text and target not in brand:
+                match = fuzz.ratio(target,primary_token)
+                if match > highest_match and primary_token != target:
+                    highest_match = match
+                    risk_score = Consts.CRITICAL
+                    risk_factors.append(target)
         return RiskScore("brand_impersonation",
-                         risk_score,
+                         min(risk_score,Consts.CRITICAL),
                          risk_factors,
                          "Possible brand impersonation of: {}").to_dict() if risk_score > 0 else RiskScore.empty()
 
@@ -211,6 +258,24 @@ class Ruleset:
                          [f"Reply-to domain = {reply_to_domain}", f"Sender domain = {sender_domain}"],
                          "Domain difference: {}").to_dict() if reply_to_domain and reply_to_domain != sender_domain else RiskScore.empty()
 
+    @staticmethod
+    def check_url_blacklist(urls:List[str]):
+        bloom_filter = Store.url_bloom_filter
+        # go through each url get host, root, exact and match with blacklist
+        # in list put result
+        risk_score = 0
+        risk_factor = []
+        for url in urls:
+            if url in bloom_filter:
+                risk_score = Consts.CRITICAL
+                risk_factor.append(url)
+
+        return RiskScore("url_black_list",
+                         risk_score,
+                         risk_factor,
+                         "Malicious urls found: {}").to_dict() if risk_score > 0 else RiskScore.empty()
+
+
     # TODO
     @staticmethod
     def check_spf():
@@ -256,6 +321,11 @@ class Ruleset:
     # TODO - Compare domain/email/url with a blacklist
 
 
+if __name__ == "__main__":
+    import time
+    start = time.time()
+    print(Ruleset.check_domain_spoofing("google.com"))
+    print(time.time()-start)
     """
     1. Integrate Sender Reputation / Domain Whitelist
 Add a lightweight check:
@@ -281,7 +351,7 @@ Then ML could learn to downgrade risk even if urgency words appear.
 """
 
 """
-The language "If this was you, ignore this message" is actually a dephisher
+The language "If this was you, ignore this message" is actually a de-phisher
 phrase used by Microsoft and others to legitimize alerts.
 That’s a contextual feature your system could eventually learn to reduce suspicion when present.
 """

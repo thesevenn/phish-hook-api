@@ -99,7 +99,7 @@ class RuleFilters:
         body_text = self.__features["body_text"]
         _,_, sender_domain = self.__features["sender"]
         urls = self.__features["urls"]
-        scores = [Ruleset.check_url_redirects(urls)]
+        scores = [Ruleset.check_url_redirects(urls), Ruleset.check_url_blacklist(urls)]
         domains = set(Ruleset.url_domain(url) for url in urls)
 
         for domain in domains:
