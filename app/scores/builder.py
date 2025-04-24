@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict
 
 from app.config.utils import Utils
 from app.config.consts import Consts
@@ -25,12 +25,18 @@ class ThreatScoreBuilder:
             score += threat_score.to_dict()["score"]
         self.__score = score
 
-    def remove_risk_scores(self):
+
+    @staticmethod
+    def __remove_internal_risk_values(threat_score: Dict[str,str|List]):
         """
         Removes score from all risk score entries in threat_sheet
         Returns: Analysis ready to be sent
-
         """
+        threat_score.pop("score",None)
+        threat_score.pop("factors",None)
+        return threat_score
+
+
     @staticmethod
     def calculate_score_verdict(score):
         score = min(score,Consts.SCORE_CAP)
@@ -49,6 +55,7 @@ class ThreatScoreBuilder:
 
         return int(round(mapped_score,0)), verdict
 
+# TODO - Update confidence logic
     @staticmethod
     def calculate_confidence(score: int) -> float:
         """
@@ -107,7 +114,7 @@ class ThreatScoreBuilder:
         return {
             "verdict":verdict,
             "score":normalized_score,
-            "filters":[threat.to_dict() for threat in self.__threat_sheet],
+            "filters":[ThreatScoreBuilder.__remove_internal_risk_values(threat.to_dict()) for threat in self.__threat_sheet],
             "confidence":ThreatScoreBuilder.calculate_confidence(self.__score),
             "critical":[]
         }
