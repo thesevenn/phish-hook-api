@@ -1,6 +1,7 @@
 import re
-from bs4 import BeautifulSoup
 import tldextract
+from typing import List
+from bs4 import BeautifulSoup
 
 class Utils:
 
@@ -50,7 +51,8 @@ class Utils:
     @staticmethod
     def extract_brand(domain:str)->str:
         """
-        Extracts brand name from the domain removing any subdomains, tld or paths etc
+        Extracts brand name from the domain removing any subdomains, tld or paths etc.
+        Examples - extract paypal from paypal.com
         Args:
             domain: Domain in the form subdomain.domain.tld or domain.tld
 
@@ -60,6 +62,19 @@ class Utils:
         extracted = tldextract.extract(domain)
         return extracted.domain.lower()
 
+    @staticmethod
+    def extract_tokens(domain:str)->List[str]:
+        brand = Utils.extract_brand(domain)
+        return re.split(r"[-._]", brand)
+
+    @staticmethod
+    def deobfuscate(text:str)->str:
+        return text.translate(str.maketrans("41053","alose")).lower()
+
+    @staticmethod
+    def extract_tld(domain:str)->str:
+        extract = tldextract.extract(domain)
+        return extract.suffix
 
 
 if __name__ == "__main__":
