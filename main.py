@@ -11,7 +11,7 @@ from handlers.rate_limit_handler import rate_limit_handler
 from app.config.store import Store
 
 dictConfig(LOGGING_CONFIG)
-
+print("uvicorn running...")
 Store.load()
 app = FastAPI(debug=True)
 app.state.limiter = limiter
