@@ -41,9 +41,15 @@ class Ruleset:
         primary_token = tokens[0] if tokens else sender_brand # likely brand name
         combined_token = ''.join(tokens) if len(tokens) >=2 else primary_token
 
-        match, score, pos = process.extractOne(primary_token, search_space, scorer=fuzz.token_sort_ratio,
+        match_result = process.extractOne(primary_token, search_space, scorer=fuzz.token_sort_ratio,
                                                score_cutoff=75)
 
+        if match_result:
+            match, score, pos = match_result
+        else:
+            match = None
+            score = 0
+            pos = -1
         risk_factors = ""
         risk_score = 0
 
