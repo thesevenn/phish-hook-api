@@ -1,4 +1,9 @@
 import logging
+from typing import List, Set
+from pybloom_live import BloomFilter
+
+from app.config.utils import Utils
+
 class Store:
     logger = logging.getLogger("uvicorn.error")
     phishing_phrases = [
@@ -102,23 +107,28 @@ class Store:
     r'\b(?:click here|verify now|login here|confirm now|update your details|reset your password)\b': "Suspicious call to action"
 }
 
-    targeted_brands = ["amazon", "bing", "google", "facebook", "paypal", "amex", "twitter", "microsoft"]
-    url_black_list = []
-    trusted_domains = ["amazon.com", "bing.com", "google.com", "facebook.com", "paypal.com", "amex.com", "twitter.com", "microsoft.com"]
+    trusted_brands = ["amazon", "bing", "google", "facebook", "paypal", "amex", "twitter", "microsoft"]
+    url_bloom_filter:BloomFilter
+    brand_tld = []
 
     @staticmethod
-    def load_and_cache_data(filename:str, column:str):
+    def preprocess_brand_list(trusted_domains:Set[str]) -> List[str]:
+        return [ Utils.extract_brand(domain) for domain in trusted_domains ]
+
+    @staticmethod
+    def load_and_cache_data(filename:str, columns: List[str])->List[List]:
         import pandas as pd
         if not filename.lower().endswith(".csv"):
             raise ValueError("Invalid file type, csv expected")
-        if not column:
+        if not columns:
             raise ValueError("Column is required to build a cache")
         try:
             df = pd.read_csv(filename)
-            if column not in df.columns:
-                raise ValueError(f"Column '{column}' not found in csv")
-            cache = set(df[column])
-            return cache
+            for column in columns:
+                if column not in df.columns:
+                    raise ValueError(f"Column '{column}' not found in csv")
+
+            return [list(df[column]) for column in columns]
         except ValueError as ve:
             Store.logger.error(f"Value Error: {ve}",exc_info=True)
             raise
@@ -131,5 +141,10 @@ class Store:
 
     @staticmethod
     def load():
-        Store.trusted_domains = Store.load_and_cache_data("./data/trusted_domains.csv","Domain")
-        Store.url_black_list = Store.load_and_cache_data("./data/black_list.csv","url")
+        Store.trusted_brands, Store.brand_tld = Store.load_and_cache_data("./data/trusted_brands.csv",["Brand","TLD"])
+
+        blacklist:List[str] = Store.load_and_cache_data("./data/black_list.csv",["url"])[0]
+        bloomer = BloomFilter(capacity=70000,error_rate=0.001)
+        for url in blacklist:
+            bloomer.add(url.strip().lower())
+        Store.url_bloom_filter = bloomer
