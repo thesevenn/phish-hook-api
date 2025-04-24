@@ -1,15 +1,16 @@
 import logging
 from typing import Optional
-from fastapi import routing, File, UploadFile, HTTPException, Form, responses,Request
+from fastapi import routing, File, UploadFile, HTTPException, Form, responses,Request, Depends
 
-from app.orchestrator import Orchestrator
 from app.config.limiter import limiter
+from app.orchestrator import Orchestrator
+from dependencies.auth import is_valid_auth
 
 router = routing.APIRouter()
 logger = logging.getLogger("uvicorn.error")
 
 
-@router.post("/analyze")
+@router.post("/analyze", dependencies=[Depends(is_valid_auth)])
 @limiter.limit("5/minute")
 async def uploader(request:Request,as_file: Optional[UploadFile] = File(None), as_str:Optional[str] = Form(None)):
     if not as_file and not as_str:
