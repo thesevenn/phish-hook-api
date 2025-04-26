@@ -1,6 +1,7 @@
 import logging
 from logging.config import dictConfig
 from fastapi import FastAPI, responses, Request
+from fastapi.middleware.cors import CORSMiddleware
 from slowapi.errors import RateLimitExceeded
 
 from routes.router import router
@@ -16,6 +17,14 @@ Store.load()
 app = FastAPI(debug=True)
 app.state.limiter = limiter
 app.include_router(router,prefix="/api")
+
+# cors setup
+origins = ["http://localhost:5173"]
+app.add_middleware(middleware_class=CORSMiddleware,
+                   allow_origins=origins,
+                   allow_credentials=True,
+                   allow_methods=["*"],
+                   allow_headers=["*"])
 
 #middlewares
 app.middleware("http")(log_request)
