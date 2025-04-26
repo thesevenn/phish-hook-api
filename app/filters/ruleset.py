@@ -65,7 +65,12 @@ class Ruleset:
             # if not enough score look for combination
         if not match or score < 80:
             # fallback to combined token
-            match, score, _ = process.extractOne(combined_token, search_space, scorer=fuzz.token_sort_ratio)
+            match_result = process.extractOne(combined_token, search_space, scorer=fuzz.token_sort_ratio)
+            if match_result:
+                match, score, _ = match_result
+            else:
+                match = None
+                score = 0
             if score > 82:
                 risk_score = Consts.HIGH
                 risk_factors= f"{sender_domain} might be spoofing {match}"
@@ -176,7 +181,7 @@ class Ruleset:
         risk_score = 0
         risk_factors = []
         highest_match = 0
-        search_space = [ target.lower() for target in targeted_brands if len(target) > 2 and target[0] == brand[0]]
+        search_space = [ target.lower() for target in targeted_brands if target and brand and len(target) > 2 and target[0] == brand[0]]
         target_text = target_text.lower()
         for target in search_space:
             if target in target_text and target not in brand:
