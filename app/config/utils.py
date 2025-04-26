@@ -63,8 +63,8 @@ class Utils:
         return extracted.domain.lower()
 
     @staticmethod
-    def extract_tokens(domain:str)->List[str]:
-        brand = Utils.extract_brand(domain)
+    def extract_tokens(brand:str)->List[str]:
+        # brand = Utils.extract_brand(domain)
         return re.split(r"[-._]", brand)
 
     @staticmethod
