@@ -116,5 +116,4 @@ class ThreatScoreBuilder:
             "score":normalized_score,
             "filters":[ThreatScoreBuilder.__remove_internal_risk_values(threat.to_dict()) for threat in self.__threat_sheet],
             "confidence":ThreatScoreBuilder.calculate_confidence(self.__score),
-            "critical":[]
         }

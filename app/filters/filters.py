@@ -116,7 +116,6 @@ class RuleFilters:
                 threat_score += RiskScore.extract_score(score_as_dict=score,
                                                         threat_clues=threat_clues,
                                                         threat_factors=threat_factors)
-
         return ThreatScore(threat_name="urls",
                            threat_score=threat_score,
                            original_value=urls,
