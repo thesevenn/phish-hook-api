@@ -19,7 +19,7 @@ app.state.limiter = limiter
 app.include_router(router,prefix="/api")
 
 # cors setup
-origins = ["https://phishook.netlify.app/"]
+origins = ["https://phishook.netlify.app"]
 app.add_middleware(middleware_class=CORSMiddleware,
                    allow_origins=origins,
                    allow_credentials=True,
