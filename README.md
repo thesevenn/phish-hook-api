@@ -14,6 +14,9 @@ Built with React and TailwindCSS, the Phishook web client offers a streamlined U
 
 👉 Try it yourself at - 🔗 [**Phishook Web**](https://phishook.netlify.app/)
 
+[![Netlify Status](https://api.netlify.com/api/v1/badges/7ad93622-99f2-4f42-bcdc-5593eb538f13/deploy-status)](https://app.netlify.com/projects/phishook/deploys)
+
+
 ## 🚀 Features
 
 - Parses `.eml` files and raw email text
