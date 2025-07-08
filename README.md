@@ -32,7 +32,8 @@ This hybrid pipeline enables faster results for obvious cases while preserving a
    ![Safe Response](./docs/safe.png)
 
 ## ⚙️System Architecture
- ```flowchart TB
+ ```mermaid
+ flowchart TB
     O[Frontend] --> A
     A["/upload"] --> B[Upload Email]
     B --> C["Backend API"]
@@ -50,7 +51,8 @@ This hybrid pipeline enables faster results for obvious cases while preserving a
 
     style A fill:#e1f5fe
     style D fill:#fff3e0
-    style H fill:#f3e5f5     ```
+    style H fill:#f3e5f5
+   ```
 
 ## 🚀 Features
 - Parses `.eml` files and raw email text
