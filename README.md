@@ -2,20 +2,28 @@
 
 <div align="center"><h1>Phishook - Phishing Email Detection</h1></div>
 
+<p align="center">
+  <img src="https://img.shields.io/badge/License-CC--BY--NC%204.0-blue.svg" />
+  <img src="https://img.shields.io/badge/Backend-FastAPI-009688?logo=fastapi&logoColor=white" />
+  <img src="https://img.shields.io/badge/Python-ML-orange?logo=python&logoColor=white" />
+</p>
+
 ___
 A Lightweight **Layered Sequential Approach** to phishing email detection.
-Rule-based filters and Machine Learning techniques applied in hybrid manner to utilize their strengths in better predicting phishing attempts. The Detection system is a Proof of Concept based on my Research during Capstone Project Work on **Phishing Email Detection using Rule-based and ML Techniques**.
+Rule-based filters and Machine Learning techniques applied in hybrid manner to utilize their strengths in better predicting phishing attempts. The Detection system is a Proof of Concept based on my Capstone Project Work on **Phishing Email Detection using Rule-based and ML Techniques**.
 
-### Phishook Web - A User-Friendly Interface for Email Analysis
-
----
-
-Built with React and TailwindCSS, the Phishook web client offers a streamlined UI for interacting with the detection API — no setup needed. Just upload an email file and get instant analysis with visual verdicts.
-
-👉 Try it yourself at - 🔗 [**Phishook Web**](https://phishook.netlify.app/)
+👉 Try it yourself at - 🔗 [**Phishook Web**](https://phishook.netlify.app). Just upload an email file and get instant analysis with visual verdicts.
 
 [![Netlify Status](https://api.netlify.com/api/v1/badges/7ad93622-99f2-4f42-bcdc-5593eb538f13/deploy-status)](https://app.netlify.com/projects/phishook/deploys)
 
+## 📌 Description
+
+Phishook applies a **layered, sequential approach** to detect phishing emails while minimizing latency and compute cost:
+
+- **Rule-based filters** serve as a fast, deterministic pre-check using heuristics (e.g., suspicious URLs, brand impersonation keywords).
+- If confidence is low, the email is escalated to the **ML layer**, which refines the score but does **not override** the rule-based result — only adjusts it marginally based on ML confidence.
+
+This hybrid pipeline enables faster results for obvious cases while preserving accuracy for edge cases.
 
 ## 🚀 Features
 
@@ -50,29 +58,49 @@ Built with React and TailwindCSS, the Phishook web client offers a streamlined U
 
 ## 🪫 Limitations
 
-- Web service is running on minimal resources limiting performance
-- No WHOIS lookup is currently made to reduce response time
-- Email attachments are not analyzed in current setting
-- No Feedback loop to improve classification models
-- No Database is used to create and store caches
+- Minimal server resources → possible delays
+- No WHOIS lookup (skipped for speed)
+- Attachments not analyzed (project scope and resource limitation)
+- No model feedback or continual learning loop
+- No database or caching layer
+- Brand filters may over-trigger on generic terms (e.g., “Inc”, “Group”)
 
-## 🔭 Future Scope and Features
+## 📦 Dataset & Model Notes
 
-- Adding feedback loop to utilize uploaded emails into improving classification models
-- Handling and analyzing attachments
-- More robust and verbose Filters result
-- Cached WHOIS lookup to add URL check but keep response time under limit.
-- Adding endpoints for only Rule or ML based analysis
+The ML models were trained primarily on:
+
+- Common phishing formats (e.g., fake receipts, order spam)
+- Legitimate marketing/newsletter content
+
+⚠️ **Caveats**:
+
+- Public datasets are biased toward newsletters due to privacy _(More on it later)_.
+- HTML-heavy, business-style emails with multiple links are harder to classify accurately.
+- Impersonation of known brands (Amazon, PayPal) is well-detected; generic phrasing less so.
+
+**Dataset Bias**: Most publicly available email datasets don’t reflect a typical inbox. Since emails are inherently private, the few datasets available tend to overrepresent newsletters — the only type commonly shared without privacy concerns.
+
+## 🔭 Roadmap
+
+- Add user feedback loop to improve models
+- Analyze attachments (e.g. `.zip`, `.pdf`)
+- Verbose rule filter output
+- Add WHOIS-based URL checks (cached)
+- Add endpoints for: `rule-only` and `ML-only` modes
 
 ## Dependencies
 - Top 5000 Domains parsed as brand name is used from [Majestic million dataset](https://majesticmillion.com)
 - A snapshot of phishing URLs from [PhishTank](https://phishtank.com/phishing_urls.csv) containing 60,000+ URLs is used
 
-## Screenshots
+## Examples
 
 ## System Architecture
 
 ## Installation and Setup
+
+### Prerequisites
+- Python - [Install Python](https://www.python.org/downloads/)
+- Git (Optional) - [Install Git](https://git-scm.com/downloads)
 
 ```bash
     git clone repo
@@ -99,7 +127,7 @@ You have two options to use the Detection system and try it out.
 
 ## 📢 Disclaimer
 
-This tool provides automated analysis based on known phishing patterns and lightweight models. It is a proof of concept developed for academic purposes and is not intended as a full-fledged or enterprise-grade security solution. While it can help flag suspicious emails, no detection system is perfect. Mistakes can occur. Always use your judgment and verify critical communications independently before engaging with any email content.
+This project is not an enterprise-grade detection system. It’s an academic proof of concept based on known phishing patterns and lightweight models. No system is perfect — always verify suspicious emails manually.
 
 ## 📝 License
 
