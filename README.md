@@ -32,7 +32,25 @@ This hybrid pipeline enables faster results for obvious cases while preserving a
    ![Safe Response](./docs/safe.png)
 
 ## ⚙️System Architecture
- ```mermaid graph TD A[Frontend: /upload] --> B[API Handler: /analyze] B --> C[Orchestrator (Singleton)] C --> D[Email Parser] C --> E[Rule-based Classifier] C --> F[ML Classifier] C --> G[ThreatScoreBuilder] G --> H[RiskScore] G --> I[ThreatScore] C --> J[JSON Result (verdict, confidence, etc.)] J --> K[Frontend: /verdict] ```
+ ```flowchart TB
+    O[Frontend] --> A
+    A["/upload"] --> B[Upload Email]
+    B --> C["Backend API"]
+    C --> D["Orchestrator"] & R["Response"]
+    D --> E["Email Parsing"] & F["Rule-based Classifier"] & H["ThreatScoreBuilder"]
+    E --> D
+    F --> S["Rule Filters"] & G["ML Classifier"]
+    S --> T["ThreatScore"]
+    G --> U["URL Classifier"] & EM["Email Classfier"]
+    U --> T
+    EM --> T
+    T --> H
+    R --> Z["/verdict"]
+    Z --> O
+
+    style A fill:#e1f5fe
+    style D fill:#fff3e0
+    style H fill:#f3e5f5     ```
 
 ## 🚀 Features
 - Parses `.eml` files and raw email text
