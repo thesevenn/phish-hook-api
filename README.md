@@ -8,7 +8,6 @@
   <img src="https://img.shields.io/badge/Python-ML-orange?logo=python&logoColor=white" />
 </p>
 
-___
 A Lightweight **Layered Sequential Approach** to phishing email detection.
 Rule-based filters and Machine Learning techniques applied in hybrid manner to utilize their strengths in better predicting phishing attempts. The Detection system is a Proof of Concept based on my Capstone Project Work on **Phishing Email Detection using Rule-based and ML Techniques**.
 
@@ -25,8 +24,31 @@ Phishook applies a **layered, sequential approach** to detect phishing emails wh
 
 This hybrid pipeline enables faster results for obvious cases while preserving accuracy for edge cases.
 
-## 🚀 Features
+## 📷Examples - API responses
+1. Critical (Verdict)
+   ![Critical Response](./docs/critical.png)
 
+2. Safe (Verdict)
+   ![Safe Response](./docs/safe.png)
+
+## ⚙️System Architecture
+```mermaid
+graph TD
+    A[Frontend: /upload] --> B[API Handler: /analyze]
+    B --> C[Orchestrator (Singleton)]
+
+    C --> D[Email Parser]
+    C --> E[Rule-based Classifier]
+    C --> F[ML Classifier]
+    C --> G[ThreatScoreBuilder]
+    G --> H[RiskScore]
+    G --> I[ThreatScore]
+
+    C --> J[JSON Result: verdict, confidence, etc.]
+    J --> K[Frontend: /verdict]
+```
+
+## 🚀 Features
 - Parses `.eml` files and raw email text
 - Rule-based detection (sender checks, URLs, language patterns)
 - Lightweight ML models for content classification
@@ -80,6 +102,15 @@ The ML models were trained primarily on:
 
 **Dataset Bias**: Most publicly available email datasets don’t reflect a typical inbox. Since emails are inherently private, the few datasets available tend to overrepresent newsletters — the only type commonly shared without privacy concerns.
 
+## 🔗Dependencies
+- Top 5000 Domains parsed as brand name is used from [Majestic million dataset](https://majesticmillion.com)
+- A snapshot of phishing URLs from [PhishTank](https://phishtank.com/phishing_urls.csv) containing 60,000+ URLs is used
+
+## ⚙️ Technologies Used
+- Python + FastAPI
+- Machine Learning (custom email + URL classifiers)
+- Pandas, NumPy
+
 ## 🔭 Roadmap
 
 - Add user feedback loop to improve models
@@ -88,15 +119,7 @@ The ML models were trained primarily on:
 - Add WHOIS-based URL checks (cached)
 - Add endpoints for: `rule-only` and `ML-only` modes
 
-## Dependencies
-- Top 5000 Domains parsed as brand name is used from [Majestic million dataset](https://majesticmillion.com)
-- A snapshot of phishing URLs from [PhishTank](https://phishtank.com/phishing_urls.csv) containing 60,000+ URLs is used
-
-## Examples
-
-## System Architecture
-
-## Installation and Setup
+## ⬇️Installation and Setup
 
 ### Prerequisites
 - Python - [Install Python](https://www.python.org/downloads/)
@@ -128,6 +151,13 @@ You have two options to use the Detection system and try it out.
 ## 📢 Disclaimer
 
 This project is not an enterprise-grade detection system. It’s an academic proof of concept based on known phishing patterns and lightweight models. No system is perfect — always verify suspicious emails manually.
+
+## 🖊️ Author
+
+**Aditya Raj Tripathi** _(Sevenn)_
+
+- Connect with me on [LinkedIn](https://linkedin.com/in/adityart)
+- Checkout other projects at [GitHub](https://github.com)
 
 ## 📝 License
 
