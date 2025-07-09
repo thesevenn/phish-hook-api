@@ -108,7 +108,7 @@ The ML models were trained primarily on:
 
 **Dataset Bias**: Most publicly available email datasets don’t reflect a typical inbox. Since emails are inherently private, the few datasets available tend to overrepresent newsletters — the only type commonly shared without privacy concerns.
 
-## 🔗Dependencies
+## 🔗Dataset Dependencies
 - Top 5000 Domains parsed as brand name is used from [Majestic million dataset](https://majesticmillion.com)
 - A snapshot of phishing URLs from [PhishTank](https://phishtank.com/phishing_urls.csv) containing 60,000+ URLs is used
 
@@ -131,19 +131,38 @@ The ML models were trained primarily on:
 - Python - [Install Python](https://www.python.org/downloads/)
 - Git (Optional) - [Install Git](https://git-scm.com/downloads)
 
+### Steps
+1. Clone Repo
 ```bash
-    git clone repo
-    cd ./repo
+    git clone https://github.com/thesevenn/phish-hook-api.git
+    cd ./phish-hook-api
+```
+2. Create .env file or set env variable
+   - Linux/MacOS
+    ```bash
+       touch .env
+    ```
+   - Windows Powershell
+    ```pwsh
+       New-Item .env
+    ```
+3. Add `ADM_API_KEY` to env file
+```bash
+   echo "ADM_API_KEY=YOUR_SECRET_KEY" > .env
+```
+4. Install dependencies and start the app
+```bash
     pip install -r requirements.txt
-    uvicorn main:app
+    uvicorn main:app --reload
 ```
-```python
-import requests
-rq = requests.Request('POST',"https://phishook.app.render.com")
-response = rq.json()
-```
-> [!Note]
-> If you are using PyCharm IDE for this project, avoid using `--reload` option instead choose a different port or simply use `uvicorn main:app` or use your own terminal
+
+> [!Warning]
+> If you're using PyCharm, avoid `--reload` when running via the built-in terminal. Either
+> - Use a custom port, or
+> - Run manually via your own terminal:
+> ```bash
+> uvicorn main:app
+> ```
 
 ## Usage
 You have two options to use the Detection system and try it out.
@@ -151,7 +170,7 @@ You have two options to use the Detection system and try it out.
 2. Use the official Phishook interface at [Phishook Web App](https://phishook.netlify.app/)
 
 > [!Note]
-> The API is not publicly available at this moment as it is just a Proof of Concept being supported by free Tier on Render.
+> The API is not publicly available at this moment as it is just a Proof of Concept being supported by free Tier on Render. But you can run it locally.
 
 
 ## 📢 Disclaimer
